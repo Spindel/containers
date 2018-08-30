@@ -1,0 +1,15 @@
+stages:
+    - publish
+
+before_script:
+    - uname -a
+
+container:
+    image: registry.gitlab.com/modioab/base-image:fedora-28-build-master
+    stage: publish
+    tags:
+        - docker
+        - x86_64
+    script:
+        - docker login -u gitlab-ci-token -p "$CI_BUILD_TOKEN" registry.gitlab.com
+        - make build-publish
