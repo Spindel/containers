@@ -13,3 +13,4 @@ container:
     script:
         - docker login -u gitlab-ci-token -p "$CI_BUILD_TOKEN" registry.gitlab.com
         - make build-publish
+        - make -C tool build-publish

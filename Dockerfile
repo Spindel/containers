@@ -12,8 +12,10 @@ LABEL "se.modio.ci.url"=$URL        \
        "se.modio.ci.host"=$HOST     \
        "se.modio.ci.date"=$DATE
 
-COPY kubernetes.ini /srv/webapp/kubernetes.ini
+COPY container.ini /srv/webapp/container.ini
 COPY launcher /srv/webapp
+ENV PGPASSFILE /data/db/pgpass
+
 
 RUN cd /srv/webapp       && \
     pip3 install gunicorn psycopg2-binary caramel && \
