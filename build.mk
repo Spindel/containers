@@ -45,6 +45,15 @@ endif
 endif
 
 
+# Workaround for problem with podman registry authentication. libpod
+# prefers to store its login credentials in
+# /var/run/container/$UID/auth.json, but only seems to successfully
+# find them in $HOME/.docker/config.json .
+ifneq ($(CI),)
+REGISTRY_AUTH_FILE ?= $(HOME)/.docker/config.json
+export REGISTRY_AUTH_FILE
+endif
+
 # MAKEFILE_LIST needs to be checked before any includes are processed.
 _buildmk_path := $(lastword $(MAKEFILE_LIST))
 
@@ -168,7 +177,7 @@ trap "rm -rf -- \"$$tmpdir\"" EXIT INT TERM && \
   $(_git) submodule sync && \
   $(_git) submodule update --init && \
   $(_git) submodule --quiet foreach 'echo $$path' | while read path; do \
-    match=$$(find $(SOURCE_ARCHIVE_PATH) -samefile $$path 2>/dev/null); \
+    match=$$(find $(SOURCE_ARCHIVE_PATH) -samefile $$path); \
     if [ -n "$$match" ]; then \
       (cd "$$path" && \
       $(_git) archive \
@@ -277,13 +286,18 @@ endif
 ## If the container image uses any built file, these should be added
 ## to the IMAGE_FILES variable.
 ##
-## The build-publish goal will completely bypass $(IMAGE_ARCHIVE) and
-## build and publish without hitting the filesystem.
+## The build-publish goal will build and push the image without
+## hitting the filesystem.
 ##
-## The build and save goals both create $(IMAGE_ARCHIVE).
+## The build and save goals both build an image and export it to
+## $(IMAGE_ARCHIVE).
 ##
 ## The load goal loads $(IMAGE_ARCHIVE) into the container storage.
-## This is used for local testing of containers.
+## This is used for local testing of containers. The
+## remove-local-image goal will remove the image again.
+##
+## The run-image goal expects the image to be loaded. It will run the
+## image using the optional IMAGE_RUN_ARGS and IMAGE_RUN_CMD.
 ##
 ## The publish goal expects the $(IMAGE_ARCHIVE) to exist and will
 ## load it into the container storage. It will re-tag it to the final
@@ -308,7 +322,7 @@ endef
 
 ifneq ($(IMAGE_REPO),)
 
-.PHONY: build save load publish build-publish login
+.PHONY: build save load run-image remove-local-image publish build-publish login
 
 IMAGE_DOCKERFILE ?= Dockerfile
 IMAGE_ARCHIVE ?= dummy.tar
@@ -355,7 +369,7 @@ IMAGE_TAG = $(_image_repo):$(_image_tag_prefix)$(IMAGE_TAG_SUFFIX)
 _buildah = buildah
 
 define _cmd_image_buildah_build =
-  $(_buildah) --storage-driver=vfs bud --pull-always \
+  $(_buildah) bud --pull-always \
     --file=$< \
     --build-arg=BRANCH="$(CI_COMMIT_REF_NAME)" \
     --build-arg=COMMIT="$(CI_COMMIT_SHA)" \
@@ -379,23 +393,23 @@ endef
 _log_cmd_image_build = BUILD $(IMAGE_LOCAL_TAG)
 
 define _cmd_image_buildah_publish =
-  $(_buildah) --storage-driver=vfs push $(IMAGE_LOCAL_TAG) docker://$(IMAGE_TAG); \
-  $(_buildah) --storage-driver=vfs rmi $(IMAGE_LOCAL_TAG)
+  $(_buildah) push $(IMAGE_LOCAL_TAG) docker://$(IMAGE_TAG) && \
+  $(_buildah) rmi $(IMAGE_LOCAL_TAG)
 endef
 define _cmd_image_docker_publish =
-  docker tag $(IMAGE_LOCAL_TAG) $(IMAGE_TAG); \
-  docker rmi $(IMAGE_LOCAL_TAG); \
-  docker push $(IMAGE_TAG); \
+  docker tag $(IMAGE_LOCAL_TAG) $(IMAGE_TAG) && \
+  docker rmi $(IMAGE_LOCAL_TAG) && \
+  docker push $(IMAGE_TAG) && \
   docker rmi $(IMAGE_TAG)
 endef
 _log_cmd_image_publish = PUBLISH $(IMAGE_TAG)
 
 define _cmd_image_buildah_save =
-  $(_buildah) --storage-driver=vfs push $(IMAGE_LOCAL_TAG) docker-archive:$(IMAGE_ARCHIVE):$(IMAGE_LOCAL_TAG); \
-  $(_buildah) --storage-driver=vfs rmi $(IMAGE_LOCAL_TAG)
+  $(_buildah) push $(IMAGE_LOCAL_TAG) docker-archive:$(IMAGE_ARCHIVE):$(IMAGE_LOCAL_TAG) && \
+  $(_buildah) rmi $(IMAGE_LOCAL_TAG)
 endef
 define _cmd_image_docker_save =
-  docker save $(IMAGE_LOCAL_TAG) > $(IMAGE_ARCHIVE); \
+  docker save $(IMAGE_LOCAL_TAG) > $(IMAGE_ARCHIVE) && \
   docker rmi $(IMAGE_LOCAL_TAG)
 endef
 _log_cmd_image_save = SAVE $(IMAGE_ARCHIVE)
@@ -417,7 +431,7 @@ publish:
 endif # ifeq($(_git),)
 
 define _cmd_image_buildah_load =
-  podman --storage-driver=vfs load < $(IMAGE_ARCHIVE)
+  podman load < $(IMAGE_ARCHIVE)
 endef
 define _cmd_image_docker_load =
   docker load < $(IMAGE_ARCHIVE)
@@ -427,23 +441,28 @@ _log_cmd_image_load = LOAD $(IMAGE_ARCHIVE)
 load:
 	$(call _cmd_image,load)
 
-# Run command, for the automated test
 define _cmd_image_buildah_run =
-  podman --storage-driver=vfs run --rm $(IMAGE_LOCAL_TAG)
+  podman run --rm $(IMAGE_RUN_ARGS) $(IMAGE_LOCAL_TAG) $(IMAGE_RUN_CMD)
 endef
 define _cmd_image_docker_run =
-  docker run --rm $(IMAGE_LOCAL_TAG)
+  docker run --rm $(IMAGE_RUN_ARGS) $(IMAGE_LOCAL_TAG) $(IMAGE_RUN_CMD)
 endef
 _log_cmd_image_run = RUN $(IMAGE_LOCAL_TAG)
 
+run-image:
+	$(call _cmd_image,run)
+
 # Remove loaded image command, for the automated test
 define _cmd_image_buildah_rmi_local =
-  $(_buildah) --storage-driver=vfs rmi $(IMAGE_LOCAL_TAG)
+  $(_buildah) rmi $(IMAGE_LOCAL_TAG)
 endef
 define _cmd_image_docker_rmi_local =
   docker rmi $(IMAGE_LOCAL_TAG)
 endef
 _log_cmd_image_rmi_local = RMI $(IMAGE_LOCAL_TAG)
+
+remove-local-image:
+	$(call _cmd_image,rmi_local)
 
 endif # ifneq ($(IMAGE_REPO),)
 
