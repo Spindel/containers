@@ -5,7 +5,7 @@ before_script:
     - uname -a
 
 container:
-    image: registry.gitlab.com/modioab/base-image/fedora-29/container:master
+    image: registry.gitlab.com/modioab/base-image/fedora-31/container:master
     stage: publish
     tags:
         - x86_64
