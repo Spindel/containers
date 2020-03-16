@@ -31,3 +31,4 @@ caramel:
     - pushes
   script:
     - make -C caramel build-publish
+    - make -C caramel_tool build-publish
