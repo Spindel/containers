@@ -1,6 +1,7 @@
 ---
 stages:
   - build
+  - second
 
 
 image: registry.gitlab.com/modioab/base-image/fedora-31/container:master
@@ -32,4 +33,13 @@ caramel:
     - pushes
   script:
     - make -C caramel build-publish
+
+
+caramel:tool:
+  stage: second
+  needs:
+    - caramel
+  except:
+    - pushes
+  script:
     - IMAGE_TAG_SUFFIX=${CI_COMMIT_REF_NAME/master/latest} make -C caramel_tool build-publish
