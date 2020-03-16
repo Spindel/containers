@@ -4,9 +4,10 @@ Generic project which runs application containers for the sysadmin team.
 
 Things that live here should:
 
-a) Not be developed by us in gitlab ( then it should have it's own)
-b) Be tracked on release cadence and/or master
-c) Be maintained somewhere/how
+1. Not be developed by us in gitlab ( then it should have it's own)
+1. Be tracked on release cadence and/or master
+1. Be maintained somewhere/how
+
 
 
 So, to avoid random forked projects like "oauth2" or others, or to get a
