@@ -1,0 +1,13 @@
+---
+stages:
+  - build
+
+zabbixui:build:
+    image: registry.gitlab.com/modioab/base-image/fedora-31/container:master
+    stage: build
+    except:
+        - pushes
+    script:
+        - make -f build.mk login
+        - podman info
+        - make -C zabbixui build-publish
