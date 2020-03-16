@@ -10,17 +10,18 @@ before_script:
   - podman info
 
 
-zabbixui:build:
-    stage: build
-    except:
-        - pushes
-    script:
-        - make -C zabbixui build-publish
+zabbixui:
+  stage: build
+  except:
+    - pushes
+  script:
+    - make -C zabbixui build-publish
+
 
 mongodb:
   stage: build
-    except:
-        - pushes
+  except:
+    - pushes
   script:
     - make -C mongodb build-publish
 
