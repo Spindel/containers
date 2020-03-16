@@ -32,4 +32,4 @@ caramel:
     - pushes
   script:
     - make -C caramel build-publish
-    - make -C caramel_tool build-publish
+    - IMAGE_TAG_SUFFIX=${CI_COMMIT_REF_NAME/master/latest} make -C caramel_tool build-publish
