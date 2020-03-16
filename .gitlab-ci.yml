@@ -1,7 +1,7 @@
 ---
 stages:
   - build
-  - publish
+
 
 image: registry.gitlab.com/modioab/base-image/fedora-31/container:master
 
@@ -24,12 +24,10 @@ mongodb:
   script:
     - make -C mongodb build-publish
 
-container:
-    image: registry.gitlab.com/modioab/base-image/fedora-31/container:master
-    stage: publish
-    tags:
-        - x86_64
-    script:
-        - make -f build.mk login
-        - make build-publish
-        - make -C tool build-publish
+
+caramel:
+  stage: build
+  except:
+    - pushes
+  script:
+    - make -C caramel build-publish
