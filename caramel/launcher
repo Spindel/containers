@@ -1,0 +1,17 @@
+#!/bin/bash
+set -x
+HOST="${HOST:-127.0.0.1}"
+PORT="${PORT:-6543}"
+CONFIG="${CONFIG:-development.ini}"
+
+sed -i "s,__DBNAME__,${PGDATABASE}," /srv/webapp/container.ini
+
+if [ -n "$RUN_DATABASE_MIGRATION" ]; then
+  (cd /srv/webapp && /usr/local/bin/alembic upgrade head)
+fi
+
+exec 2>&1 \
+    gunicorn \
+        --access-logfile - \
+        --bind $HOST:$PORT \
+        --paste "$CONFIG"
