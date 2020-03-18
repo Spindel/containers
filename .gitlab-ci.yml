@@ -6,6 +6,9 @@ stages:
 
 image: registry.gitlab.com/modioab/base-image/fedora-31/container:master
 
+variables:
+  TEMP_IMAGE_CARAMEL: ${CI_REGISTRY_IMAGE}/caramel:${CI_PIPELINE_ID}
+
 before_script:
   - make -f build.mk login
   - podman info
@@ -26,7 +29,9 @@ mongodb:
 caramel:
   stage: build
   script:
-    - make -C caramel build-publish
+    - make -C caramel build load test-image publish
+    - make -C caramel load
+    - podman push ${TEMP_IMAGE_CARAMEL} docker://${TEMP_IMAGE_CARAMEL}
 
 
 caramel:tool:
@@ -34,4 +39,8 @@ caramel:tool:
   needs:
     - caramel
   script:
-    - IMAGE_TAG_SUFFIX=${CI_COMMIT_REF_NAME/master/latest} make -C caramel_tool build-publish
+    - podman pull ${TEMP_IMAGE_CARAMEL}
+    - podman tag ${TEMP_IMAGE_CARAMEL} registry.gitlab.com/modioab/containers/caramel:master
+    - make BUILDAH_PULL=--pull-never -C caramel_tool clean build load test-image
+    - make -C caramel_tool load publish
+    - IMAGE_TAG_SUFFIX=${CI_COMMIT_REF_NAME/master/latest} make -C caramel_tool load publish
