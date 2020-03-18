@@ -6,6 +6,9 @@ stages:
 
 image: registry.gitlab.com/modioab/base-image/fedora-31/container:master
 
+variables:
+  TEMP_IMAGE_CARAMEL: ${CI_REGISTRY_IMAGE}/caramel:${CI_PIPELINE_ID}
+
 before_script:
   - make -f build.mk login
   - podman info
@@ -13,33 +16,34 @@ before_script:
 
 zabbixui:
   stage: build
-  except:
-    - pushes
   script:
     - make -C zabbixui build-publish
 
 
 mongodb:
   stage: build
-  except:
-    - pushes
   script:
     - make -C mongodb build-publish
 
 
 caramel:
   stage: build
-  except:
-    - pushes
   script:
-    - make -C caramel build-publish
+    - make -C caramel build load test-image publish
+    - make -C caramel load
+    - podman push ${TEMP_IMAGE_CARAMEL} docker://${TEMP_IMAGE_CARAMEL}
 
 
 caramel:tool:
   stage: second
   needs:
     - caramel
-  except:
-    - pushes
   script:
-    - IMAGE_TAG_SUFFIX=${CI_COMMIT_REF_NAME/master/latest} make -C caramel_tool build-publish
+    - podman pull ${TEMP_IMAGE_CARAMEL}
+    - podman tag ${TEMP_IMAGE_CARAMEL} registry.gitlab.com/modioab/containers/caramel:master
+    - make BUILDAH_PULL=--pull-never -C caramel_tool build
+    - make -C caramel_tool load test-image publish
+    - if [ "$CI_COMMIT_REF_NAME" = "master" ];
+      then
+        make IMAGE_TAG_SUFFIX=latest -C caramel_tool load publish;
+      fi

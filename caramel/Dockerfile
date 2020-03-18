@@ -18,7 +18,7 @@ ENV PGPASSFILE /data/db/pgpass
 
 
 RUN cd /srv/webapp       && \
-    pip3 install gunicorn psycopg2-binary caramel && \
+    pip3 install zope.sqlalchemy==1.1 gunicorn psycopg2-binary caramel && \
     mkdir /data
 
 WORKDIR /data
