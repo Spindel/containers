@@ -13,24 +13,18 @@ before_script:
 
 zabbixui:
   stage: build
-  except:
-    - pushes
   script:
     - make -C zabbixui build-publish
 
 
 mongodb:
   stage: build
-  except:
-    - pushes
   script:
     - make -C mongodb build-publish
 
 
 caramel:
   stage: build
-  except:
-    - pushes
   script:
     - make -C caramel build-publish
 
@@ -39,7 +33,5 @@ caramel:tool:
   stage: second
   needs:
     - caramel
-  except:
-    - pushes
   script:
     - IMAGE_TAG_SUFFIX=${CI_COMMIT_REF_NAME/master/latest} make -C caramel_tool build-publish
