@@ -41,6 +41,9 @@ caramel:tool:
   script:
     - podman pull ${TEMP_IMAGE_CARAMEL}
     - podman tag ${TEMP_IMAGE_CARAMEL} registry.gitlab.com/modioab/containers/caramel:master
-    - make BUILDAH_PULL=--pull-never -C caramel_tool clean build load test-image
-    - make -C caramel_tool load publish
-    - IMAGE_TAG_SUFFIX=${CI_COMMIT_REF_NAME/master/latest} make -C caramel_tool load publish
+    - make BUILDAH_PULL=--pull-never -C caramel_tool build
+    - make -C caramel_tool load test-image publish
+    - if [ "$CI_COMMIT_REF_NAME" = "master" ];
+      then
+        make IMAGE_TAG_SUFFIX=latest -C caramel_tool load publish;
+      fi
