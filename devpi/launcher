@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -eu
+
+if ! [ -f /data/.nodeinfo ]; then
+    /usr/local/bin/devpi-init
+fi
+
+if ! [ -f /data/secret ]; then
+    touch /data/secret
+    chmod 600 /data/secret
+fi
+
+exec /usr/local/bin/devpi-server
