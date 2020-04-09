@@ -1,0 +1,14 @@
+%YAML 1.1
+---
+version: '3.7'
+services:
+  init_db:
+    build: ./init_db
+    networks:
+      - network
+    environment:
+      db_name: postgresql://bacula:bacula@postgres/bacula
+
+networks:
+  network: ~
+...
