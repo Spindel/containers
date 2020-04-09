@@ -53,3 +53,27 @@ caramel:tool:
       then
         make IMAGE_TAG_SUFFIX=latest -C caramel_tool load publish;
       fi
+
+
+bacula:client:
+  stage: build
+  script:
+    - make -C bacula/client build-publish
+
+
+bacula:console:
+  stage: build
+  script:
+    - make -C bacula/console build-publish
+
+
+bacula:director:
+  stage: build
+  script:
+    - make -C bacula/director build-publish
+
+
+bacula:storage:
+  stage: build
+  script:
+    - make -C bacula/storage build-publish
