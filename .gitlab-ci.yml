@@ -77,3 +77,9 @@ bacula:storage:
   stage: build
   script:
     - make -C bacula/storage build-publish
+
+
+bacula:webui:
+  stage: build
+  script:
+    - make -C bacula/baculum build-publish
