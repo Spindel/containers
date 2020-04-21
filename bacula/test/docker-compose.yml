@@ -50,6 +50,20 @@ services:
     volumes:
       - ./bconsole.conf:/etc/bacula/bconsole.conf
 
+  webapi:
+    image: registry.gitlab.com/modioab/containers/bacula/baculum:bacula
+    networks:
+      - network
+    volumes:
+      - ./bconsole.conf:/etc/bacula/bconsole.conf
+    command: [-D,-f, /etc/baculum/baculum-api-lighttpd.conf]
+
+  webui:
+    image: registry.gitlab.com/modioab/containers/bacula/baculum:bacula
+    networks:
+      - network
+    command: [-D,-f, /etc/baculum/baculum-web-lighttpd.conf]
+
 networks:
   network: ~
 
