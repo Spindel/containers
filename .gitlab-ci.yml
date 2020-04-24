@@ -26,6 +26,12 @@ mongodb:
     - make -C mongodb build-publish
 
 
+debos:
+  stage: build
+  script:
+    - make -C debos build-publish
+
+
 caramel:
   stage: build
   script:

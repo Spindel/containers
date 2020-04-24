@@ -1,0 +1,8 @@
+architecture: armhf
+actions:
+    - action: run
+      description: Test that debos works
+      chroot: false
+      label: testcase
+      command: echo $(date) > ${ROOTDIR}/date && mksquashfs ${ROOTDIR} root.squashfs
+
