@@ -1,0 +1,59 @@
+%YAML 1.1
+---
+version: '3.7'
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: "bacula"
+    networks:
+      - network
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    expose:
+      - '5432'
+
+  director:
+    depends_on:
+      - postgres
+    image: registry.gitlab.com/modioab/containers/bacula/director:master
+    networks:
+      - network
+    volumes:
+      - ./bacula-dir.conf:/etc/bacula/bacula-dir.conf
+    expose:
+      - '9101'
+
+  storage:
+    image: registry.gitlab.com/modioab/containers/bacula/storage:master
+    networks:
+      - network
+    volumes:
+      - storage:/data
+      - ./bacula-sd.conf:/etc/bacula/bacula-sd.conf
+    expose:
+      - '9103'
+
+  client:
+    image: registry.gitlab.com/modioab/containers/bacula/client:master
+    networks:
+      - network
+    volumes:
+      - ./bacula-fd.conf:/etc/bacula/bacula-fd.conf
+    expose:
+      - '9102'
+
+  console:
+    image: registry.gitlab.com/modioab/containers/bacula/console:master
+    networks:
+      - network
+    volumes:
+      - ./bconsole.conf:/etc/bacula/bconsole.conf
+
+networks:
+  network: ~
+
+volumes:
+  postgres: ~
+  storage: ~
+...
