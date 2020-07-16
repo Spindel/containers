@@ -20,6 +20,12 @@ zabbixui:
     - make -C zabbixui build-publish
 
 
+zabbi-server:
+  stage: build
+  script:
+    - make -C zabbix-server build-publish
+
+
 mongodb:
   stage: build
   script:
