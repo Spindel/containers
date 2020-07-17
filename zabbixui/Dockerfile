@@ -1,5 +1,4 @@
 FROM debian:buster
-MAINTAINER "D.S. Ljungmark" <ljungmark@modio.se>
 
 ARG URL=unknown
 ARG COMMIT=unknown
@@ -11,7 +10,8 @@ LABEL "se.modio.ci.url"=$URL        \
        "se.modio.ci.branch"=$BRANCH \
        "se.modio.ci.commit"=$COMMIT \
        "se.modio.ci.host"=$HOST     \
-       "se.modio.ci.date"=$DATE
+       "se.modio.ci.date"=$DATE     \
+       "maintainer"="ljungmark@modio.se"
 
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 TERM=xterm
 
@@ -28,8 +28,8 @@ RUN dpkg -i /tmp/zabbix-release_5.0-1+buster_all.deb  && \
     echo "en_GB.UTF-8 UTF-8" >> /etc/locale.gen && \
     echo "sv_SE.UTF-8 UTF-8" >> /etc/locale.gen && \
     locale-gen && \
-    DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends nginx-light && \
     DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
+        nginx-light \
         php7.3-pgsql \
         php7.3-fpm \
         php7.3-bcmath \
