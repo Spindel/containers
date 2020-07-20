@@ -1,9 +1,11 @@
 IMAGE_REPO = registry.gitlab.com/modioab/containers/zabbixui
 
-IMAGE_FILES += timezone.ini
-IMAGE_FILES += zabbix-release-4.0-2.el7.noarch.rpm
+IMAGE_FILES += files/policy
+IMAGE_FILES += zabbix-release_5.0-1+buster_all.deb
+IMAGE_FILES += files/etc/nginx/nginx.conf
+IMAGE_FILES += files/etc/php/7.3/fpm/php-fpm.conf
 
 IMAGE_TEST_ARGS = -t --rm=true
-IMAGE_TEST_CMD = /usr/bin/timeout --preserve-status 5 /usr/sbin/httpd -DFOREGROUND
+IMAGE_TEST_CMD = sh -c '/usr/sbin/nginx -t && /usr/sbin/php-fpm7.3 -t'
 
 include ../build.mk

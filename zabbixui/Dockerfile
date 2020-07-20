@@ -1,4 +1,4 @@
-FROM centos:7
+FROM debian:buster
 
 ARG URL=unknown
 ARG COMMIT=unknown
@@ -10,18 +10,49 @@ LABEL "se.modio.ci.url"=$URL        \
        "se.modio.ci.branch"=$BRANCH \
        "se.modio.ci.commit"=$COMMIT \
        "se.modio.ci.host"=$HOST     \
-       "se.modio.ci.date"=$DATE
+       "se.modio.ci.date"=$DATE     \
+       "maintainer"="ljungmark@modio.se"
 
-COPY zabbix-release-4.0-2.el7.noarch.rpm /tmp
-RUN rpm -Uvh /tmp/zabbix-release-4.0-2.el7.noarch.rpm  && \
-    yum clean all && \
-    yum install -y httpd && \
-    yum install -y mod_ssl && \
-    yum install -y zabbix-web-pgsql && \
-    chown root:apache /etc/zabbix/web && \
-    yum clean all && \
-    rm -f /tmp/zabbix-release-4.0-2.el7.noarch.rpm
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 TERM=xterm
 
-COPY timezone.ini /etc/php.d/
-EXPOSE 80
-CMD ["/usr/sbin/httpd", "-DFOREGROUND"]
+COPY zabbix-release_5.0-1+buster_all.deb /tmp
+# It's important to add the policy before installing, so we dont get the debian packages
+COPY files/policy /etc/apt/preferences.d/zabbix
+
+
+RUN dpkg -i /tmp/zabbix-release_5.0-1+buster_all.deb  && \
+    rm -f /tmp/zabbix-release_5.0-1+buster_all.deb  && \
+    apt update && \
+    DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends locales && \
+    echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
+    echo "en_GB.UTF-8 UTF-8" >> /etc/locale.gen && \
+    echo "sv_SE.UTF-8 UTF-8" >> /etc/locale.gen && \
+    locale-gen && \
+    DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
+        nginx-light \
+        php7.3-pgsql \
+        php7.3-fpm \
+        php7.3-bcmath \
+        php7.3-gd \
+        php7.3-json \
+        php7.3-ldap \
+        php7.3-mbstring \
+        php7.3-xml \
+        php7.3 && \
+    DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
+        zabbix-frontend-php && \
+    DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
+        libfcgi-bin && \
+    apt -y autoremove && \
+    apt clean all && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY files/etc/  /etc/
+EXPOSE 8080/TCP
+EXPOSE 9000/TCP
+
+# user 33 == www-data
+USER 33
+
+# RUN /usr/sbin/php-fpm7.3 -t
+# RUN /usr/sbin/nginx -t
