@@ -1,85 +1,64 @@
+# vim: expandtab:ts=8:sw=2:tw=80:fdm=marker:ft=yaml:
+%YAML 1.1
 ---
+# Keep the includes first to illustrate that definitions that everything that
+# follows override included definitions.
+include:
+  # Use MergeRequest pipelines
+  # https://docs.gitlab.com/ee/ci/yaml/#workflowrules-templates
+  - template: 'Workflows/MergeRequest-Pipelines.gitlab-ci.yml'
+  - file: /.gitlab/ci/default.yml
+    project: ModioAB/agile
+    ref: master
+  - file: /.gitlab/ci/container.yml
+    project: ModioAB/agile
+    ref: master
+
 stages:
   - build
   - second
+  - test
+  - deploy
 
+.matrix:
+  parallel:
+    matrix:
+      - SUBDIR: caramel
+        IMAGE_BUILD_FROM: ${PYTHON_IMAGE}
+      - SUBDIR:
+          - zabbixui
+          - zabbix-server
+          - mongodb
+          - debos
+          - bacula/client
+          - bacula/console
+          - bacula/director
+          - bacula/storage
 
-image: registry.gitlab.com/modioab/base-image/fedora-31/container:master
+build:
+  extends:
+    - .container:build
+    - .matrix
 
-variables:
-  TEMP_IMAGE_CARAMEL: ${CI_REGISTRY_IMAGE}/caramel:${CI_PIPELINE_ID}
+container:publish:
+  extends:
+    - .container:publish
+    - .matrix
 
-before_script:
-  - make -f build.mk login
-  - podman info
-
-
-zabbixui:
-  stage: build
-  script:
-    - make -C zabbixui build-publish
-
-
-zabbi-server:
-  stage: build
-  script:
-    - make -C zabbix-server build-publish
-
-
-mongodb:
-  stage: build
-  script:
-    - make -C mongodb build-publish
-
-
-debos:
-  stage: build
-  script:
-    - make -C debos build-publish
-
-
-caramel:
-  stage: build
-  script:
-    - make -C caramel build load test-image publish
-    - make -C caramel load
-    - podman push ${TEMP_IMAGE_CARAMEL} docker://${TEMP_IMAGE_CARAMEL}
-
-
-caramel:tool:
+# caramel_tool needs the previous "caramel" image. Thus it's split.
+caramel_tool:build:
+  extends: .container:build
   stage: second
   needs:
-    - caramel
-  script:
-    - podman pull ${TEMP_IMAGE_CARAMEL}
-    - podman tag ${TEMP_IMAGE_CARAMEL} registry.gitlab.com/modioab/containers/caramel:master
-    - make BUILDAH_PULL=--pull-never -C caramel_tool build
-    - make -C caramel_tool load test-image publish
-    - if [ "$CI_COMMIT_REF_NAME" = "master" ];
-      then
-        make IMAGE_TAG_SUFFIX=latest -C caramel_tool load publish;
-      fi
+    - build
+  variables:
+    SUBDIR: caramel_tool
+    IMAGE_BUILD_FROM: ${CI_REGISTRY_IMAGE}/caramel:${CI_PIPELINE_ID}
 
-
-bacula:client:
-  stage: build
-  script:
-    - make -C bacula/client build-publish
-
-
-bacula:console:
-  stage: build
-  script:
-    - make -C bacula/console build-publish
-
-
-bacula:director:
-  stage: build
-  script:
-    - make -C bacula/director build-publish
-
-
-bacula:storage:
-  stage: build
-  script:
-    - make -C bacula/storage build-publish
+caramel_tool:publish:
+  extends: .container:publish
+  needs:
+    - caramel_tool:build
+  variables:
+    SUBDIR: caramel_tool
+...
