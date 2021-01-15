@@ -7,12 +7,11 @@ include:
   # Use MergeRequest pipelines
   # https://docs.gitlab.com/ee/ci/yaml/#workflowrules-templates
   - template: 'Workflows/MergeRequest-Pipelines.gitlab-ci.yml'
-  - file: /.gitlab/ci/default.yml
-    project: ModioAB/agile
-    ref: master
-  - file: /.gitlab/ci/container.yml
-    project: ModioAB/agile
-    ref: master
+  - project: ModioAB/CI
+    ref: main
+    file:
+      - /ci/default.yml
+      - /ci/container.yml
 
 stages:
   - build
