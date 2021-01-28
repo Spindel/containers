@@ -1,0 +1,33 @@
+#!/bin/bash
+set -eo pipefail
+
+echo NAMESPACE="$NAMESPACE"
+echo PGHOST="$PGHOST"
+echo PGUSER="$PGUSER"
+
+export STORAGE="/srv/pgbackup/${NAMESPACE}/data"
+
+
+ssh_init() {
+	mkdir -p ~/.ssh
+	eval "$(ssh-agent -s)"
+	ssh-add <(echo "$SSH_PRIVATE_KEY")
+	echo "tri.modio.se ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICaJ8163wb51Z+q7y8HxKsylp2H6jRcjBPhCqQp5nxhU" >> ~/.ssh/known_hosts
+}
+
+do_backup() {
+	pg_basebackup --wal-method=stream  --format=t --checkpoint=spread --pgdata="$STORAGE"
+}
+
+do_compress() {
+	zstd -5 -T4 --rsyncable --rm "$STORAGE"/pg_wal.tar "$STORAGE"/base.tar
+}
+
+do_transfer() {
+	rsync -var "$STORAGE" "bak@tri.modio.se:$STORAGE"
+}
+
+ssh_init
+do_backup
+do_compress
+do_transfer

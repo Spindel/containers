@@ -25,14 +25,15 @@ stages:
       - SUBDIR: caramel
         IMAGE_BUILD_FROM: ${PYTHON_IMAGE}
       - SUBDIR:
-          - zabbixui
-          - zabbix-server
-          - mongodb
-          - debos
           - bacula/client
           - bacula/console
           - bacula/director
           - bacula/storage
+          - debos
+          - mongodb
+          - pgbackup
+          - zabbixui
+          - zabbix-server
 
 build:
   extends:
