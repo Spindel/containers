@@ -32,6 +32,7 @@ stages:
           - debos
           - mongodb
           - pgbackup
+          - walg
           - zabbixui
           - zabbix-server
 
