@@ -1,4 +1,4 @@
-IMAGE_REPO = registry.gitlab.com/modioab/containers/caramel/sqlite
+IMAGE_REPO = registry.gitlab.com/modioab/containers/caramel-sqlite
 
 IMAGE_FILES += container.ini
 IMAGE_FILES += launcher

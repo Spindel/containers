@@ -24,7 +24,7 @@ stages:
     matrix:
       - SUBDIR:
           - caramel
-          - caramel/sqlite
+          - caramel-sqlite
         IMAGE_BUILD_FROM: ${PYTHON_IMAGE}
       - SUBDIR:
           - zabbixui
