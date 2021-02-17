@@ -22,7 +22,9 @@ stages:
 .matrix:
   parallel:
     matrix:
-      - SUBDIR: caramel
+      - SUBDIR:
+          - caramel
+          - caramel/sqlite
         IMAGE_BUILD_FROM: ${PYTHON_IMAGE}
       - SUBDIR:
           - zabbixui
