@@ -11,6 +11,5 @@ LABEL "se.modio.ci.url"=$URL  "se.modio.ci.branch"=$BRANCH  "se.modio.ci.commit"
 
 
 ADD uglytool /usr/local/bin/uglytool
-RUN pip install zope.sqlalchemy==1.1
 
 ENTRYPOINT ["/usr/local/bin/uglytool"]
