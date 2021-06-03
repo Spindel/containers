@@ -9,4 +9,4 @@ FROM docker.io/library/ubuntu:20.04
 COPY --from=build /wal-g /usr/local/bin/wal-g
 RUN /usr/local/bin/wal-g --version
 
-CMD ["/usr/local/bin/wal-g"]
+ENTRYPOINT ["/usr/local/bin/wal-g"]
