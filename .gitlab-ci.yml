@@ -33,6 +33,7 @@ stages:
           - bacula/console
           - bacula/director
           - bacula/storage
+          - borg
           - wal-g
 
 build:
