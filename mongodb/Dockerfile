@@ -1,4 +1,4 @@
-FROM centos/mongodb-36-centos7:latest
+FROM docker.io/centos/mongodb-36-centos7:latest
 # Above is maintained here https://github.com/sclorg/mongodb-container
 
 ARG URL=unknown
