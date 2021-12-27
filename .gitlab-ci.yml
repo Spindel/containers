@@ -31,7 +31,6 @@ stages:
           - bacula/storage
           - borg
           - debos
-          - knot
           - mongodb
           - wal-g
           - zabbix-server
