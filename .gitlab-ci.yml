@@ -47,6 +47,17 @@ container:publish:
     - .container:publish
     - .matrix
 
+# Publish the image again, this time as ":latest"
+container:publish:latest:
+  extends:
+    - container:publish
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      variables:
+        IMAGE_TAG_SUFFIX: latest
+      when: on_success
+    - when: never
+
 # caramel_tool needs the previous "caramel" image. Thus it's split.
 caramel_tool:build:
   extends: .container:build
@@ -63,4 +74,15 @@ caramel_tool:publish:
     - caramel_tool:build
   variables:
     SUBDIR: caramel_tool
+
+# Publish the image again, this time as ":latest"
+caramel_tool:publish:latest:
+  extends:
+    - caramel_tool:publish
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      variables:
+        IMAGE_TAG_SUFFIX: latest
+      when: on_success
+    - when: never
 ...
